@@ -1,106 +1,62 @@
-use std::fs::File;
+use std::fs::{File, self};
 use std::error::Error;
 use std::io::{self,prelude::*, BufReader};
+use std::ops::Add;
 
 fn main() {
-    let mut SLICES: Vec<String> = Vec::new();
+    let mut Slices: Vec<String> = Vec::new();
     let temp_slices = init_slices();
     match temp_slices {
-        Ok(slices) => SLICES = slices,
-        Err(_) => todo!(),
+        Ok(slices) => {
+            Slices = slices;
+            let output = calculate_sum(&Slices);
+            let len = &Slices.len();
+            match output {
+                Ok(sum) => println!("The sum of all the numbers is {sum}"),
+                Err(e) => println!("{:?}", e),
+            }
+        },
+        Err(_) => (),
     }
-    let output = calculate_sum(&SLICES);
-    match output {
-        Ok(sum) => println!("The sum of all the numbers is {:?}", sum),
-        Err(e) => println!("{:?}", e),
-    }
-    // println!("The sum of all the numbers is {:?}", output);
 }
 
 fn calculate_sum(SLICES: &Vec<String>) -> Result<u32, Box<dyn Error>>{
     let file = File::open("input.txt")?;
     let reader = BufReader::new(file);
-    let mut line_in: String = String::new();
-    let mut numbers: Vec<u32> = Vec::new();
-    let mut num: u32 = 0;
     let mut sum: u32 = 0;
 
     for line in  reader.lines(){
-        let mut num_string = String::new();
         let mut out_num: u32 = 0;
-        let mut line_num: u32 = 0;
-        let mut line_string = String::new();
+        let mut first_num:u32 = 0;
 
-        // match line {
-        //     Ok(line) => {
-        //         line_in = line;
-        //         get_line_value(&line_in, &SLICES);
-        //
-        //         for ch in line_in.chars() {
-        //             match ch.is_numeric(){
-        //                 true => {
-        //                     num_string.push(ch);
-        //                 },
-        //                 false => {
-        //
-        //                 },
-        //             }
-        //         }
-        //         let conv = num_string.trim().parse::<u32>().unwrap(); 
-        //         let first_num = num_string.trim().chars().nth(0);
-        //         let last_num = conv % 10;
-        //
-        //         match first_num {
-        //             Some(value) => out_num = value.to_digit(10).unwrap(),
-        //             None => todo!(),
-        //         }
-        //         out_num = out_num * 10 + last_num;
-        //
-        //         sum += out_num;
-        //         println!("{out_num}");
-        //     },
-        //     Err(e) => {
-        //         println!("{:?}", e);
-        //     },
 
         match line {
-            Ok(_line) => line_string = _line,
-            Err(_) => todo!(),
+            Ok(_line) => {
+                let parsed_num = get_line_value(&_line, SLICES);
+                first_num = parsed_num;
+                while first_num >= 10 {
+                    first_num /= 10;
+                }
+                out_num = first_num * 10 + parsed_num % 10;
+                println!("combined {out_num}");
+                sum += out_num;
+            },
+            Err(_) => (),
         }
-
-        match get_line_value(&line_string, SLICES){
-            Ok(value) => line_num = value,
-            Err(_) => todo!(),
-        }
-
-        let mut first_num: u32 = 0;
-        match line_num.to_string().chars().nth(0){
-            Some(value) => num_string.push(value),
-            None => println!("Error: nothing found"),
-        };
-
-        match char::from_u32(line_num % 10){
-            Some(value) => num_string.push(value),
-            None => println!("Error: Cannot convert"),
-        }
-
-        out_num = num_string.trim().parse::<u32>().unwrap();
-        sum += out_num;
     }
 
     Ok(sum)
 }
 
-fn get_line_value(line_in: &String, slices: &Vec<String>) -> Result<u32, Box<dyn Error>>{
-    let mut n = 0;
-    let value:u32 = 0;
+fn get_line_value(line_in: &String, slices: &Vec<String>) -> u32{
+    let mut value:u32 = 0;
     let mut numbers: Vec<u32> = Vec::new();
     let mut string_to_parse = String::new();
 
     for char in line_in.chars() {
         string_to_parse.push(char); 
 
-        if(char.is_numeric()){
+        if char.is_numeric(){
             numbers.push(char.to_digit(10).unwrap());
             string_to_parse.clear();
         }
@@ -120,16 +76,22 @@ fn get_line_value(line_in: &String, slices: &Vec<String>) -> Result<u32, Box<dyn
                     x if x.contains("nine") =>{numbers.push(9)}, 
                     &_ => {},
                 }
+                let last_char = string_to_parse.chars().last();
                 string_to_parse.clear();
+                match last_char{
+                    Some(char) => string_to_parse = char.to_string(),
+                    None => todo!(),
+                }
             }
         }
     }
 
-    // for number in numbers  {
-    //     println!("{number} | {n}");
-    //     n+= 1;
-    // }
-    Ok(value)
+    for number in numbers{
+        value = value * 10 + number;
+    }
+        println!("parsed {value}");
+
+    return value
 }
 
 fn init_slices() -> Result<Vec<String>, Box<dyn Error>>{
