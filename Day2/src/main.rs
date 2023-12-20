@@ -37,15 +37,18 @@ fn parse_lines(lines: Vec<String>){
     let mut sum: u32 = 0;
     let mut line_idx: u32 = 0;
     for line in lines{
-        line_idx += 1;
-        let mut num_out: u32 = 0;
-        if let Some((game_string, cube_string)) = line.split_once(':'){
-            let playable = calculate_cubes(cube_string.to_string());
-            if playable{
-                sum += line_idx;
-                println!("Game {line_idx} is playable");
-            }
-        }
+        if let Some((game_string, line_string)) = line.split_once(':'){
+            sum += calculate_pow(line_string.to_string());
+    }
+        // line_idx += 1;
+        // let mut num_out: u32 = 0;
+        // if let Some((game_string, cube_string)) = line.split_once(':'){
+        //     let playable = calculate_cubes(cube_string.to_string());
+        //     if playable{
+        //         sum += line_idx;
+        //         println!("Game {line_idx} is playable");
+        //     }
+        // }
     }
     println!("{sum}");
 }
@@ -81,6 +84,41 @@ fn calculate_cubes(input: String) -> bool{
     }
 
     return true;
+}
+
+fn calculate_pow(input: String) -> u32{
+    let mut cubecount_red: u32 = 0;
+    let mut cubecount_green: u32 = 0;
+    let mut cubecount_blue: u32 = 0;
+
+    for part in input.split([',', ';']){
+
+        let mut count: u32 = 0;
+        for char in part.chars(){
+            if char.is_numeric(){
+                count = (count * 10) + (char.to_digit(10).unwrap());
+            }
+        }
+
+        match part{
+            x if x.contains("red") => {
+                if count > cubecount_red{
+                cubecount_red = count;
+            }},
+            x if x.contains("green") => {
+                if count > cubecount_green{
+                cubecount_green = count;
+            }},
+            x if x.contains("blue") => {
+                if count > cubecount_blue{
+                cubecount_blue = count;
+            }},
+            &_ => {println!("other????????")},
+        }
+        println!("{part}");
+    }
+
+    return cubecount_red * cubecount_green * cubecount_blue;
 }
 
 fn init_colors() -> Vec<String>{
